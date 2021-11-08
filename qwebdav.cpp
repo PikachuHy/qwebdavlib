@@ -10,8 +10,10 @@
 **      http://tools.ietf.org/html/rfc5323
 **
 ** Missing:
-**      - LOCK support
 **      - process WebDAV SEARCH responses
+**
+** Copyright (C) 2021 Benoît Rouits <brouits@free.fr>
+** for LOCK/UNLOCK support
 **
 ** Copyright (C) 2012 Martin Haller <martin.haller@rebnil.com>
 ** for QWebDAV library (qwebdavlib) version 1.0
@@ -452,7 +454,7 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
     return reply;
 }
 
-QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
+QNetworkReply* QWebdav::put(const QString& path, QIODevice* data, const QDateTime& dt)
 {
     QNetworkRequest req = buildRequest();
 
@@ -461,14 +463,19 @@ QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
 
     req.setUrl(reqUrl);
 
+    if (dt.isValid()) {
+        QLocale us(QLocale::English, QLocale::UnitedStates);
+        req.setRawHeader("Date", us.toString(dt.toUTC(), "ddd, dd MMM yyyy hh:mm:ss").toUtf8());
+    }
+
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo) << " date = " << req.rawHeader("Date");
 #endif
 
     return QNetworkAccessManager::put(req, data);
 }
 
-QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
+QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data, const QDateTime& dt)
 {
     QNetworkRequest req = buildRequest();
 
@@ -477,8 +484,13 @@ QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
 
     req.setUrl(reqUrl);
 
+    if (dt.isValid()) {
+        QLocale us(QLocale::English, QLocale::UnitedStates);
+        req.setRawHeader("Date", us.toString(dt.toUTC(), "ddd, dd MMM yyyy hh:mm:ss").toUtf8());
+    }
+
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo) << " date = " << req.rawHeader("Date");
 #endif
 
     return QNetworkAccessManager::put(req, data);
@@ -560,6 +572,52 @@ QNetworkReply* QWebdav::proppatch(const QString& path, const QByteArray& query)
     req.setUrl(reqUrl);
 
     return createRequest("PROPPATCH", req, query);
+}
+
+QNetworkReply *QWebdav::lock(const QString &path, qint64 secs, const QString &token, QWebdavLockScope scope, QWebdavLockDepth depth, const QString &owner)
+{
+    QString lockscope = scope == LOCK_SCOPE_EXCLUSIVE ? "exclusive" : "shared";
+
+    QByteArray query = "<?xml version=\"1.0\"?>\r\n";
+    query.append( "<D:lockinfo xmlns:D=\"DAV:\">\r\n" );
+    query.append( " <D:lockscope><D:" + lockscope.toUtf8() + "/>" + "</D:lockscope>\r\n");
+    query.append( " <D:locktype><D:write/></D:locktype>\r\n");
+    if (!owner.isEmpty())
+        query.append( " <D:owner><D:href>" + owner.toUtf8() + "</D:href></D:owner>\r\n");
+    query.append( "</D:lockinfo>\r\n" );
+
+    QNetworkRequest req = buildRequest();
+
+    QUrl reqUrl(m_baseUrl);
+    reqUrl.setPath(absolutePath(path));
+
+    req.setUrl(reqUrl);
+
+    QString lockdepth = depth == LOCK_DEPTH_INFINITY ? "infinity" : "0";
+    req.setRawHeader("Depth", lockdepth.toUtf8());
+
+    QString seconds = secs < 0 ? "Infinite" : "Second-" + QString::number(secs);
+    req.setRawHeader("Timeout", seconds.toUtf8());
+
+    if (!token.isEmpty()) {
+        req.setRawHeader("If", "(<" + token.toUtf8() + ">)");
+    }
+
+    return createRequest("LOCK", req, query);
+}
+
+QNetworkReply *QWebdav::unlock(const QString &path, const QString &token)
+{
+    QNetworkRequest req = buildRequest();
+
+    QUrl reqUrl(m_baseUrl);
+    reqUrl.setPath(absolutePath(path));
+
+    req.setUrl(reqUrl);
+
+    req.setRawHeader("Lock-Token", "<" + token.toUtf8() + ">");
+
+    return createRequest("UNLOCK", req);
 }
 
 QNetworkReply* QWebdav::mkdir (const QString& path)
