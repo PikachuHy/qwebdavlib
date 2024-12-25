@@ -4,16 +4,16 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Network Xml REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network Xml REQUIRED)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-add_library(QtWebDAV SHARED
-        QNaturalSort.cpp
-        QNaturalSort.h
-        QWebDAV.cpp
-        QWebDAV.h
-        QWebDAV_global.h
-        QWebDAVDirParser.cpp
-        QWebDAVDirParser.h
-        QWebDAVItem.cpp
-        QWebDAVItem.h
+add_library(QtWebDAV
+        qnaturalsort.cpp
+        qnaturalsort.h
+        qwebdav.cpp
+        qwebdav.h
+        qwebdav_global.h
+        qwebdavdirparser.cpp
+        qwebdavdirparser.h
+        qwebdavitem.cpp
+        qwebdavitem.h
         )
 
 target_link_libraries(QtWebDAV PUBLIC
