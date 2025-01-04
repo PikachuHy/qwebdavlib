@@ -2,7 +2,7 @@
 
 QtWebDAV Library version 2.0
 
-is a library for Qt5 (and Qt6) and provides access to WebDAV servers.
+is a library for Qt6 (and Qt5) and provides access to WebDAV servers.
 WebDAV is an extension for HTTP, so that a Web server can
 provide write access in addition to read access. The WebDAV
 standard provides the essential functionalities to access
@@ -47,9 +47,7 @@ https://doc.qt.io/qt-6/qtnetworkauth-index.html
 ## Build
 
 ```shell
-mkdir build
-cd build
-cmake ..
-make -j4
+cmake -S . -B build -GNinja
+cmake --build build
 ```
 

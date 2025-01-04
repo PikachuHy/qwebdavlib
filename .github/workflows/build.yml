@@ -1,0 +1,49 @@
+name: 🧪 Linux build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        qt_version: [5, 6]
+
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Get deps
+        run: |
+          if [ "${{ matrix.qt_version }}" -eq 6 ]; then
+              QT_PACKAGES="qt6-base-dev"
+          else
+              QT_PACKAGES="qtbase5-dev"
+          fi
+          sudo apt-get install \
+            cmake \
+            ninja-build \
+            clang \
+            ${QT_PACKAGES}
+
+          
+      - name: Build
+        run: |
+          if [ "${{ matrix.qt_version }}" -eq 6 ]; then
+              CMAKE_QT_OPTION="BUILD_WITH_QT6:BOOL=ON"
+          else
+              CMAKE_QT_OPTION="BUILD_WITH_QT6:BOOL=OFF"
+          fi
+          cmake -GNinja \
+            -S . \
+            -D${CMAKE_QT_OPTION} \
+            -B build
+          cmake --build build
+

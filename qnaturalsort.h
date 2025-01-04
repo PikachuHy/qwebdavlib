@@ -48,7 +48,7 @@
 
 #include "qwebdav_global.h"
 
-class QWEBDAVSHARED_EXPORT QNaturalSort
+class QTWEBDAV_EXPORT QNaturalSort
 {
 public:
     QNaturalSort();

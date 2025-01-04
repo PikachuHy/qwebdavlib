@@ -55,7 +55,7 @@
 
 #include <QDateTime>
 
-class QWEBDAVSHARED_EXPORT QWebdavItem
+class QTWEBDAV_EXPORT QWebdavItem
 {
 public:
     QWebdavItem();

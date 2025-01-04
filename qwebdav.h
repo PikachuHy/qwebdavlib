@@ -59,7 +59,7 @@
 /**
  * @brief Main class used to handle the webdav protocol
  */
-class QWEBDAVSHARED_EXPORT QWebdav : public QNetworkAccessManager
+class QTWEBDAV_EXPORT QWebdav : public QNetworkAccessManager
 {
     Q_OBJECT
 

@@ -64,7 +64,7 @@
 #include "qwebdav.h"
 #include "qwebdavitem.h"
 
-class QWEBDAVSHARED_EXPORT QWebdavDirParser : public QObject
+class QTWEBDAV_EXPORT QWebdavDirParser : public QObject
 {
     Q_OBJECT
 
